@@ -4,16 +4,16 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PayloadInventory extends Model
+class BatteryInventory extends Model
 {
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function payloadModel()
+    public function batteryModel()
     {
-        return $this->belongsTo(PayloadModel::class);
+        return $this->belongsTo(BatteryModel::class, 'battery_model_id');
     }
 
     public function bookings()

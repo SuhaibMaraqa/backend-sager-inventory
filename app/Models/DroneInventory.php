@@ -8,7 +8,7 @@ class DroneInventory extends Model
 {
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function maintenance()
@@ -22,6 +22,6 @@ class DroneInventory extends Model
     }
 
     public function droneModel(){
-        return $this->belongsTo(DroneModel::class);
+        return $this->belongsTo(DroneModel::class, 'drone_model_id');
     }
 }

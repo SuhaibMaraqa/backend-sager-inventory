@@ -13,6 +13,6 @@ class BatteryModel extends Model
 
     public function batteryInventory()
     {
-        return $this->hasMany(BatteryInventory::class, 'battery_model_id');
+        return $this->hasMany(BatteryInventory::class);
     }
 }
