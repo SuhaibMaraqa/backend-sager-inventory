@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +14,16 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+// Route::post('/user/register', 'AuthController@register');
+// Route::get('/user/register', 'AuthController@index');
+// Route::post('/user/login', 'AuthController@login');
+// Route::get('/user/me', 'AuthController@me');
+
+
+Route::post('register', 'AuthController@register');
+Route::post('login', 'AuthController@login');
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('user', 'AuthController@user');
+    Route::post('logout', 'AuthController@logout');
 });
