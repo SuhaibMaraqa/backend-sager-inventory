@@ -17,6 +17,16 @@ class AuthController extends Controller
     {
         $roleID = Role::where('title', $request->input('role_id'))->value('id');
 
+        $request->validate([
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'email' => 'required|unique:users|email',
+            'role_id' => 'required',
+            'gender' => 'required',
+            'national_id' => 'required|unique:users',
+            'password' => 'required',
+        ]);
+
         return User::create([
             'first_name' => $request->input('first_name'),
             'last_name' => $request->input('last_name'),

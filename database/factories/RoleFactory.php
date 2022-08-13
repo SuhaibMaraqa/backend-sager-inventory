@@ -7,8 +7,8 @@ use Faker\Generator as Faker;
 
 $factory->define(Role::class, function (Faker $faker) {
     return [
-        'id' => 3,
-        'title' => 'pilot'
+        'id' => 1,
+        'title' => 'admin'
         //admin 1
         //center 2
         //pilot 3

@@ -26,10 +26,11 @@ class HomeController extends Controller
     public function index()
     {
         $roleId = Auth::user()->role_id;
-        $role = Role::find($roleId);
 
-        return view('home', [
-            'role' => $role
-        ]);
+        return Role::find($roleId);
+
+        // return view('home', [
+        //     'role' => $role
+        // ]);
     }
 }

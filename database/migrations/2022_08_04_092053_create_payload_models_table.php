@@ -18,25 +18,43 @@ class CreatePayloadModelsTable extends Migration
             $table->string('brand_name');
             $table->string('model_name');
             $table->string('type');
-            $table->binary('image');
+            $table->binary('image')->nullable();
             $table->timestamps();
         });
 
-        Schema::create('drone_payload', function (Blueprint $table) {
-            $table->bigIncrements('id');
+        // Schema::create('drone_payload', function (Blueprint $table) {
+        //     $table->bigIncrements('id');
+        //     $table->unsignedBigInteger('drone_id');
+        //     $table->unsignedBigInteger('payload_id');
+        //     $table->timestamps();
+
+        //     $table->unique(['drone_id', 'payload_id']);
+
+        //     $table->foreign('drone_id')
+        //         ->references('id')
+        //         ->on('drone_models');
+
+        //     $table->foreign('payload_id')
+        //         ->references('id')
+        //         ->on('payload_models');
+        // });
+        Schema::create('drone_payload_attachment', function (Blueprint $table) {
+            $table->primary(['drone_id', 'payload_id']);
             $table->unsignedBigInteger('drone_id');
             $table->unsignedBigInteger('payload_id');
             $table->timestamps();
 
-            $table->unique(['drone_id', 'payload_id']);
+            // $table->unique(['drone_id', 'payload_id']);
 
             $table->foreign('drone_id')
                 ->references('id')
-                ->on('drone_models');
+                ->on('drone_models')
+                ->onDelete('cascade');
 
             $table->foreign('payload_id')
                 ->references('id')
-                ->on('payload_models');
+                ->on('payload_models')
+                ->onDelete('cascade');
         });
     }
 
@@ -48,5 +66,6 @@ class CreatePayloadModelsTable extends Migration
     public function down()
     {
         Schema::dropIfExists('payload_models');
+        Schema::dropIfExists('drone_payload_attachment');
     }
 }

@@ -19,7 +19,7 @@ class CreateBatteryModelsTable extends Migration
             $table->string('brand_name');
             $table->string('model_name');
             $table->integer('maximum_num_of_cycles');
-            $table->binary('image');
+            $table->binary('image')->nullable();
             $table->timestamps();
 
             $table->foreign('drone_model_id')->references('id')->on('drone_models')->onDelete('cascade');
