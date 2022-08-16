@@ -50,7 +50,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('token')->plainTextToken;
 
-        $cookie = cookie('jwt', $token, 60);
+        $cookie = cookie('jwt', $token, 60 * 24);
 
         return response([
             'message' => 'Success'
@@ -70,69 +70,4 @@ class AuthController extends Controller
     {
         return Auth::user();
     }
-
-    // public function __construct()
-    // {
-    //     return $this->middleware('auth:api')->only('me');
-    // }
-
-    // public function index()
-    // {
-    //     return 'Hello';
-    // }
-
-    // public function register(Request $request)
-    // {
-    //     $roleID = Role::where('title', $request['role_id'])->value('id');
-    //     $request['role_id'] = $roleID;
-
-    //     $request->validate([
-    // 'first_name' => 'required',
-    // 'last_name' => 'required',
-    // 'role_id' => 'required',
-    // 'email' => 'required|email',
-    // 'password' => 'required|min:6',
-    // 'gender' => 'required',
-    // 'national_id' => 'required'
-    //     ]);
-
-    //     $data = $request->only('first_name', 'last_name', 'role_id', 'email', 'password', 'gender', 'national_id');
-
-    //     $user = new User($data);
-    //     $user->save();
-
-    //     return response()->json([
-    //         'message' => 'User registered successfully'
-    //     ]);
-    // }
-
-    // public function login(Request $request)
-    // {
-    //     $request->validate([
-    //         'email' => 'required',
-    //         'password' => 'required',
-    //     ]);
-
-    //     $credentials = $request->only(['email', 'password']);
-
-    //     $token = auth()->attempt($credentials);
-
-    //     if (!$token) {
-    //         return response()->json(['message' => 'Invalid email or password'], 403);
-    //     }
-
-    //     return response()->json([
-    //         'message' => 'Logged in successfully',
-    //         'token' => $token
-    //     ]);
-    // }
-
-    // public function me(Request $request)
-    // {
-    //     return $request->user();
-    //     return ([
-    //         'email' => $request->email,
-    //         'firstName' => $request->first_name
-    //     ]);
-    // }
 }

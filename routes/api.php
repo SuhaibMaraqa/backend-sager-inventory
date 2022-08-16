@@ -26,7 +26,9 @@ Route::post('login', 'AuthController@login');
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', 'AuthController@user');
     Route::post('logout', 'AuthController@logout');
+    Route::get('users', 'HomeController@users');
 
+    //Admin Routes
     Route::post('drone-model/add', 'AdminController@addDroneModel');
     Route::put('drone-model/{id}/update', 'AdminController@updateDroneModel');
     Route::delete('drone-model/{id}/delete', 'AdminController@deleteDroneModel');
@@ -39,5 +41,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('battery-model/{id}/update', 'AdminController@updateBatteryModel');
     Route::delete('battery-model/{id}/delete', 'AdminController@deleteBatteryModel');
 
-    Route::get('/home', 'HomeController@index');
+    //Center & Pilots routes
+    Route::get('drones', 'InventoryController@indexDrone');
+    Route::get('drone/{id}', 'InventoryController@showDrone');
+    Route::post('drone/add', 'InventoryController@addDrone');
+    Route::put('drone/{id}/update', 'InventoryController@updateDrone');
+    Route::delete('drone/{id}/delete', 'InventoryController@deleteDrone');
+
+    Route::get('payloads', 'InventoryController@indexPayload');
+    Route::get('payload/{id}', 'InventoryController@showPayload');
+    Route::post('payload/add', 'InventoryController@addPayload');
+    Route::put('payload/{id}/update', 'InventoryController@updatePayload');
+    Route::delete('payload/{id}/delete', 'InventoryController@deletePayload');
+
+    Route::get('batteries', 'InventoryController@indexBatteries');
+    Route::get('battery/{id}', 'InventoryController@showBattery');
+    Route::post('battery/add', 'InventoryController@addBattery');
+    Route::put('battery/{id}/update', 'InventoryController@updateBattery');
+    Route::delete('battery/{id}/delete', 'InventoryController@deleteBattery');
+
+    Route::get('book', 'BookingController@index');
+    Route::post('book', 'BookingController@store');
+
+    Route::get('/role', 'HomeController@index');
 });

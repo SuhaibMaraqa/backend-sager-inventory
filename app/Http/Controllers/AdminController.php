@@ -10,6 +10,16 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
+
+    private function imgUpload($request, $dir)
+    {
+        $file = $request->file('image');
+        $extension = $file->getClientOriginalExtension();
+        $fileName = time() . '.' . $extension;
+        $file->move('images/' . $dir . '/', $fileName);
+        return $fileName;
+    }
+
     public function addDroneModel(Request $request)
     {
 
@@ -31,17 +41,29 @@ class AdminController extends Controller
             'range' => 'required'
         ]);
 
-        return DroneModel::create([
-            "brand_name" => $request->input('brand_name'),
-            "model_name" => $request->input('model_name'),
-            "has_built_in_camera" => $request->input('has_built_in_camera'),
-            "wind_speed" => $request->input('wind_speed'),
-            "temprature" => $request->input('temprature'),
-            "weight" => $request->input('weight'),
-            "max_flight_time" => $request->input('max_flight_time'),
-            "max_height" => $request->input('max_height'),
-            "range" => $request->input('range')
-        ]);
+        $droneModel = new DroneModel;
+
+        $data = $request->all();
+
+        foreach ($data as $key => $value) {
+            $droneModel->$key = $request->$key;
+        }
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = time() . '.' . $extension;
+            $file->move('images/drones/', $fileName);
+            $droneModel->image = $fileName;
+            // $droneModel->image = imgUpload($request, 'drones');
+        }
+
+        $droneModel->save();
+
+        return response()->json([
+            'message' => 'Drone Model Added successfully',
+            'Drone' => $droneModel
+        ], 201);
     }
 
     public function updateDroneModel(Request $request, $id)
@@ -58,9 +80,13 @@ class AdminController extends Controller
                 'message' => 'Drone Model Not Found.'
             ]);
         } else {
+            $unique = '';
+            if (DroneModel::find($id)->model_name != $request->model_name) {
+                $unique = '|unique:drone_models';
+            }
             $request->validate([
                 'brand_name' => 'required',
-                'model_name' => 'required|unique:drone_models',
+                'model_name' => 'required' . $unique,
                 'has_built_in_camera' => 'required|boolean',
                 'wind_speed' => 'required',
                 'temprature' => 'required',
@@ -80,7 +106,7 @@ class AdminController extends Controller
 
             return response()->json([
                 'message' => 'Drone Model Updated Successfully.'
-            ]);
+            ], 200);
         }
     }
 
@@ -109,7 +135,6 @@ class AdminController extends Controller
 
     public function addPayloadModel(Request $request)
     {
-
         if (Auth::user()->role_id != 1) {
             return ([
                 'message' => 'Unauthenticated user.'
@@ -123,15 +148,42 @@ class AdminController extends Controller
             'drone_id' => 'required'
         ]);
 
-        $payloadModel = PayloadModel::create([
-            "brand_name" => $request->input('brand_name'),
-            "model_name" => $request->input('model_name'),
-            "type" => $request->input('type'),
-        ]);
+        $payloadModel = new PayloadModel;
 
-        $drone_id = $request->input('drone_id');
+        $data = $request->all();
 
-        return DroneModel::find($drone_id)->attachPayloadModel($payloadModel);
+        foreach ($data as $key => $value) {
+            if ($key == 'drone_id') {
+                continue;
+            }
+            $payloadModel->$key = $request->$key;
+        }
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = time() . '.' . $extension;
+            $file->move('images/payloads/', $fileName);
+            $payloadModel->image = $fileName;
+        }
+
+        $payloadModel->save();
+
+        $string = "";
+
+        foreach ($request->input('drone_id') as $value) {
+            if (!DroneModel::find($value)->has_built_in_camera) {
+                DroneModel::find($value)->attachPayloadModel($payloadModel);
+            } else {
+                $string .= $value . ',';
+            }
+        }
+
+        return response()->json([
+            'message' => 'Payload Model Added successfully',
+            'Payload' => $payloadModel,
+            'unattachableDrones' => 'These Drones => ' . $string . ' can\'t handle attachment'
+        ], 201);
     }
 
     public function updatePayloadModel(Request $request, $id)
@@ -148,30 +200,44 @@ class AdminController extends Controller
                 'message' => 'Payload Model Not Found.'
             ]);
         } else {
+            $unique = '';
+            if (PayloadModel::find($id)->model_name != $request->model_name) {
+                $unique = '|unique:payload_models';
+            }
             $request->validate([
                 'brand_name' => 'required',
-                'model_name' => 'required|unique:payload_models',
+                'model_name' => 'required' . $unique,
                 'type' => 'required',
-                // 'drone_id' => 'required'
+                'drone_id' => 'required'
             ]);
 
             //change relationship table drone_id
 
-            // if ($request->drone_id != ) {
-            //     # code...
-            // }
-            // return DroneModel::find($request->drone_id)->payloadModel;
+            $payloadDroneAttachment = PayloadModel::find($id)->droneModel;
+
+            for ($i = 0; $i < count($payloadDroneAttachment); $i++) {
+                $payloadDroneAttachment[$i]->pivot->delete();
+            }
+
+            foreach ($request->input('drone_id') as $key => $value) {
+                DroneModel::find($value)->attachPayloadModel($payload);
+            }
 
             $data = $request->all();
 
             foreach ($data as $key => $value) {
+                if ($key == 'drone_id') {
+                    continue;
+                }
                 $payload->$key = $request->$key;
             }
+
 
             $payload->update();
 
             return response()->json([
-                'message' => 'Payload Model Updated Successfully.'
+                'message' => 'Payload Model Updated Successfully.',
+                $payload
             ]);
         }
     }
@@ -185,6 +251,7 @@ class AdminController extends Controller
         }
 
         $payload = PayloadModel::find($id);
+
         if (!$payload) {
             return response()->json([
                 'message' => 'Payload Model Not Found.'
@@ -215,12 +282,28 @@ class AdminController extends Controller
             'maximum_num_of_cycles' => 'required',
         ]);
 
-        return BatteryModel::create([
-            "brand_name" => $request->input('brand_name'),
-            "model_name" => $request->input('model_name'),
-            "drone_model_id" => $request->input('drone_model_id'),
-            "maximum_num_of_cycles" => $request->input('maximum_num_of_cycles')
-        ]);
+        $batteryModel = new BatteryModel;
+
+        $data = $request->all();
+
+        foreach ($data as $key => $value) {
+            $batteryModel->$key = $request->$key;
+        }
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = time() . '.' . $extension;
+            $file->move('images/batteries/', $fileName);
+            $batteryModel->image = $fileName;
+        }
+
+        $batteryModel->save();
+
+        return response()->json([
+            'message' => 'Battery Model Added successfully',
+            'Battery' => $batteryModel
+        ], 201);
     }
 
     public function updateBatteryModel(Request $request, $id)
@@ -237,8 +320,13 @@ class AdminController extends Controller
                 'message' => 'Battery Model Not Found.'
             ]);
         } else {
+
+            $unique = '';
+            if (BatteryModel::find($id)->drone_model_id != $request->drone_model_id) {
+                $unique = '|unique:battery_models';
+            }
             $request->validate([
-                'drone_model_id' => 'required' . BatteryModel::find($id)->drone_model_id == $request->drone_model_id ? '' : '|unique:battery_models',
+                'drone_model_id' => 'required' . $unique,
                 'brand_name' => 'required',
                 'model_name' => 'required|unique:battery_models',
                 'maximum_num_of_cycles' => 'required',

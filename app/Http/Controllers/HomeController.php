@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Role;
+use App\User;
 
 class HomeController extends Controller
 {
@@ -18,11 +19,10 @@ class HomeController extends Controller
         $this->middleware('auth');
     }
 
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
+    public function users(){
+        return User::all();
+    }
+
     public function index()
     {
         $roleId = Auth::user()->role_id;

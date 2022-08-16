@@ -18,7 +18,7 @@ class CreatePayloadModelsTable extends Migration
             $table->string('brand_name');
             $table->string('model_name');
             $table->string('type');
-            $table->binary('image')->nullable();
+            $table->string('image')->nullable();
             $table->timestamps();
         });
 

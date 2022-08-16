@@ -14,7 +14,7 @@ class PayloadModel extends Model
     // }
     public function droneModel()
     {
-        return $this->belongsToMany(DroneModel::class, 'drone_payload_attachment', 'drone_id', 'payload_id');
+        return $this->belongsToMany(DroneModel::class, 'drone_payload_attachment', 'payload_id', 'drone_id');
     }
 
     public function attachDroneModel(DroneModel $droneModel)
