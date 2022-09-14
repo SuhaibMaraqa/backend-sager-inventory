@@ -15,31 +15,34 @@ class InventoryController extends Controller
 {
     public function indexDrone()
     {
+        $drones = [];
         if (Auth::user()->role_id == 1) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
-            ]);
+            ], Response::HTTP_UNAUTHORIZED);
         } else if (Auth::user()->role_id == 2) { // if user is Center
 
-            $drones = [];
+
 
             foreach (DroneInventory::latest()->get() as $drone) {
 
+                $drone->image = asset($drone->image);
+                // return $drone->image;
+
                 $droneModel = DroneModel::find($drone->drone_model_id, [
-                    'brand_name', 'model_name', 'has_built_in_camera', 'wind_speed',
-                    'temprature', 'weight', 'max_flight_time', 'range', 'image'
+                    'brand_name', 'model_name', 'has_built_in_camera', 'image', 'wind_speed',
+                    'temprature', 'weight', 'max_flight_time', 'range'
                 ]);
 
                 $mergedDrone = array_merge($drone->toArray(), $droneModel->toArray());
                 array_push($drones, $mergedDrone);
             }
-            return response()->json($drones, 200);
         } else if (Auth::user()->role_id == 3) { //if user is Pilot
-
-            $drones = [];
 
             foreach (DroneInventory::where('user_id', Auth::user()->id)->latest()->get() as $drone) {
 
+                $drone->image = asset($drone->image);
+
                 $droneModel = DroneModel::find($drone->drone_model_id, [
                     'brand_name', 'model_name', 'has_built_in_camera', 'wind_speed',
                     'temprature', 'weight', 'max_flight_time', 'range', 'image'
@@ -48,8 +51,9 @@ class InventoryController extends Controller
                 $mergedDrone = array_merge($drone->toArray(), $droneModel->toArray());
                 array_push($drones, $mergedDrone);
             }
-            return response()->json($drones, 200);
         }
+
+        return response()->json($drones, 200);
     }
 
     public function showDrone($id)
@@ -101,7 +105,8 @@ class InventoryController extends Controller
             'message' => 'Drone Added successfully',
             'Drone' => DroneInventory::create([
                 "drone_model_id" => $request->input('drone_model_id'),
-                "user_id" => Auth::user()->id,
+                // "user_id" => Auth::user()->id,
+                "user_id" => $request->input('user_id'),
                 "name" => $request->input('name'),
                 "serial_number" => $request->input('serial_number'),
                 "purchase_date" => $request->input('purchase_date'),
@@ -169,17 +174,20 @@ class InventoryController extends Controller
         }
 
         $battery = DroneInventory::find($id);
+
         if (!$battery) {
+
             return response()->json([
                 'message' => 'Drone Not Found.'
             ]);
-        } else {
-
+        } else if (DroneInventory::find($id)->user_id == Auth::user()->id) {
             $battery->delete();
 
             return response()->json([
                 'message' => 'Drone Deleted Successfully.'
             ]);
+        } else {
+            return response()->json(['message' => 'Not Accessible by you.']);
         }
     }
 
@@ -267,7 +275,8 @@ class InventoryController extends Controller
             'message' => 'Payload Added successfully',
             'Drone' => PayloadInventory::create([
                 "payload_model_id" => $request->input('payload_model_id'),
-                "user_id" => Auth::user()->id,
+                // "user_id" => Auth::user()->id,
+                "user_id" => $request->input('user_id'),
                 "name" => $request->input('name'),
                 "serial_number" => $request->input('serial_number'),
                 "purchase_date" => $request->input('purchase_date'),
@@ -335,18 +344,19 @@ class InventoryController extends Controller
             ]);
         }
 
-        $battery = PayloadInventory::find($id);
-        if (!$battery) {
+        $payload = PayloadInventory::find($id);
+        if (!$payload) {
             return response()->json([
                 'message' => 'Payload Not Found.'
             ]);
-        } else {
-
-            $battery->delete();
+        } else if (PayloadInventory::find($id)->user_id == Auth::user()->id) {
+            $payload->delete();
 
             return response()->json([
                 'message' => 'Payload Deleted Successfully.'
             ]);
+        } else {
+            return response()->json(['message' => 'Not Accessible by you.']);
         }
     }
 
@@ -435,7 +445,8 @@ class InventoryController extends Controller
             'message' => 'Battery Added successfully',
             'Battery' => BatteryInventory::create([
                 "battery_model_id" => $request->input('battery_model_id'),
-                "user_id" => Auth::user()->id,
+                // "user_id" => Auth::user()->id,
+                "user_id" => $request->input('user_id'),
                 "name" => $request->input('name'),
                 "serial_number" => $request->input('serial_number'),
                 "purchase_date" => $request->input('purchase_date'),
@@ -513,13 +524,14 @@ class InventoryController extends Controller
             return response()->json([
                 'message' => 'Battery Not Found.'
             ]);
-        } else {
-
+        } else if (BatteryInventory::find($id)->user_id == Auth::user()->id) {
             $battery->delete();
 
             return response()->json([
                 'message' => 'Battery Deleted Successfully.'
             ]);
+        } else {
+            return response()->json(['message' => 'Not Accessible by you.']);
         }
     }
 }

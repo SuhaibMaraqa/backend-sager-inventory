@@ -7,6 +7,7 @@ use App\DroneModel;
 use App\PayloadModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class AdminController extends Controller
 {
@@ -20,13 +21,27 @@ class AdminController extends Controller
         return $fileName;
     }
 
+    public function listDroneModels()
+    {
+        // if (Auth::user()->role_id != 1) {
+        //     return response()->json([
+        //         'message' => 'Unauthenticated user.'
+        //     ]);
+        // } else { // if user is Admin
+        //     $drones = DroneModel::all();
+        //     return $drones ? $drones : response()->json(['message' => 'No Drones Were Found']);
+        // }
+        $drones = DroneModel::orderBy('id')->get();
+        return $drones ? $drones : response()->json(['message' => 'No Drones Were Found']);
+    }
+
     public function addDroneModel(Request $request)
     {
 
         if (Auth::user()->role_id != 1) {
-            return ([
+            return response()->json([
                 'message' => 'Unauthenticated user.'
-            ]);
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
         $request->validate([
@@ -54,8 +69,7 @@ class AdminController extends Controller
             $extension = $file->getClientOriginalExtension();
             $fileName = time() . '.' . $extension;
             $file->move('images/drones/', $fileName);
-            $droneModel->image = $fileName;
-            // $droneModel->image = imgUpload($request, 'drones');
+            $droneModel->image = 'images/drones/' . $fileName;
         }
 
         $droneModel->save();
@@ -112,6 +126,12 @@ class AdminController extends Controller
 
     public function deleteDroneModel($id)
     {
+        // if (Auth::user()->role_id != 1) {
+        //     return response()->json([
+        //         'message' => 'Unauthenticated user.'
+        //     ]);
+        // }
+
         if (Auth::user()->role_id != 1) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
@@ -131,6 +151,20 @@ class AdminController extends Controller
                 'message' => 'Drone Model Deleted Successfully.'
             ]);
         }
+    }
+
+    public function listPayloadModels()
+    {
+        // if (Auth::user()->role_id != 1) {
+        //     return response()->json([
+        //         'message' => 'Unauthenticated user.'
+        //     ]);
+        // } else { // if user is Admin
+        //     $payload = PayloadModel::all();
+        //     return $payload ? $payload : response()->json(['message' => 'No Drones Were Found']);
+        // }
+        $payload = PayloadModel::orderBy('id')->get();
+        return $payload ? $payload : response()->json(['message' => 'No Drones Were Found']);
     }
 
     public function addPayloadModel(Request $request)
@@ -164,25 +198,29 @@ class AdminController extends Controller
             $extension = $file->getClientOriginalExtension();
             $fileName = time() . '.' . $extension;
             $file->move('images/payloads/', $fileName);
-            $payloadModel->image = $fileName;
+            $payloadModel->image = 'images/payloads/' . $fileName;
         }
 
         $payloadModel->save();
 
         $string = "";
+        $unattachableDrones = false;
 
         foreach ($request->input('drone_id') as $value) {
             if (!DroneModel::find($value)->has_built_in_camera) {
                 DroneModel::find($value)->attachPayloadModel($payloadModel);
             } else {
                 $string .= $value . ',';
+                $unattachableDrones = true;
             }
         }
 
         return response()->json([
             'message' => 'Payload Model Added successfully',
             'Payload' => $payloadModel,
-            'unattachableDrones' => 'These Drones => ' . $string . ' can\'t handle attachment'
+            'isUnattachableDrones' => $unattachableDrones,
+            'unattachableDrones' => 'These Drones => ' . $string . ' can\'t handle attachment',
+            'drone_id' => $request->input('drone_id')
         ], 201);
     }
 
@@ -266,6 +304,20 @@ class AdminController extends Controller
         }
     }
 
+    public function listBatteryModels()
+    {
+        // if (Auth::user()->role_id != 1) {
+        //     return response()->json([
+        //         'message' => 'Unauthenticated user.'
+        //     ]);
+        // } else { // if user is Admin
+        //     $battery = BatteryModel::all();
+        //     return $battery ? $battery : response()->json(['message' => 'No Drones Were Found']);
+        // }
+        $battery = BatteryModel::orderBy('id')->get();
+        return $battery ? $battery : response()->json(['message' => 'No Drones Were Found']);
+    }
+
     public function addBatteryModel(Request $request)
     {
 
@@ -295,7 +347,7 @@ class AdminController extends Controller
             $extension = $file->getClientOriginalExtension();
             $fileName = time() . '.' . $extension;
             $file->move('images/batteries/', $fileName);
-            $batteryModel->image = $fileName;
+            $batteryModel->image = 'images/batteries/' . $fileName;
         }
 
         $batteryModel->save();

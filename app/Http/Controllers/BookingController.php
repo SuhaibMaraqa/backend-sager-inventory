@@ -14,7 +14,7 @@ class BookingController extends Controller
 {
     public function index(Request $request)
     {
-        if ($request->all()) {
+        if ($request->all()) { /* /book?drone_id=1&battery_id=2 */
             $booking = Booking::where($request->all())->first();
             return $booking ? $booking : response()->json(['message' => 'Booking Not Found']);
         } else {
