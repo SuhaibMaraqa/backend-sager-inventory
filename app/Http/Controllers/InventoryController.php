@@ -16,11 +16,11 @@ class InventoryController extends Controller
     public function indexDrone()
     {
         $drones = [];
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ], Response::HTTP_UNAUTHORIZED);
-        } else if (Auth::user()->role_id == 2) { // if user is Center
+        } else if (Auth::user()->isCenter) { // if user is Center
 
 
 
@@ -37,7 +37,7 @@ class InventoryController extends Controller
                 $mergedDrone = array_merge($drone->toArray(), $droneModel->toArray());
                 array_push($drones, $mergedDrone);
             }
-        } else if (Auth::user()->role_id == 3) { //if user is Pilot
+        } else if (Auth::user()->isPilot) { //if user is Pilot
 
             foreach (DroneInventory::where('user_id', Auth::user()->id)->latest()->get() as $drone) {
 
@@ -58,7 +58,7 @@ class InventoryController extends Controller
 
     public function showDrone($id)
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -84,7 +84,7 @@ class InventoryController extends Controller
     public function addDrone(Request $request)
     {
 
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -120,7 +120,7 @@ class InventoryController extends Controller
 
     public function updateDrone(Request $request, $id)
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -167,7 +167,7 @@ class InventoryController extends Controller
 
     public function deleteDrone($id)
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -193,11 +193,11 @@ class InventoryController extends Controller
 
     public function indexPayload()
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
-        } else if (Auth::user()->role_id == 2) {
+        } else if (Auth::user()->isCenter) {
             $payloads = [];
 
             foreach (PayloadInventory::latest()->get() as $payload) {
@@ -211,7 +211,7 @@ class InventoryController extends Controller
             }
 
             return response()->json($payloads, 200);
-        } else if (Auth::user()->role_id == 3) {
+        } else if (Auth::user()->isPilot) {
             $payloads = [];
 
             foreach (PayloadInventory::where('user_id', Auth::user()->id)->latest()->get() as $payload) {
@@ -230,8 +230,9 @@ class InventoryController extends Controller
     public function showPayload($id)
     {
         $payload = PayloadInventory::find($id);
+        $dronesNames = [];
 
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -243,7 +244,13 @@ class InventoryController extends Controller
                     'brand_name', 'model_name', 'type', 'image'
                 ]);
 
-                return array_merge($payload->toArray(), $payloadModel->toArray());
+                foreach (PayloadModel::find($payload->payload_model_id)->droneModel as $element) {
+                    array_push($dronesNames, $element->brand_name);
+                }
+
+                $mergeArray =  array_merge($payload->toArray(), ['attached_drones_names' => $dronesNames], ['num_of_attached_drones' => count($dronesNames)]);
+
+                return array_merge($payloadModel->toArray(), $mergeArray);
             } else {
                 return response()->json(['message' => 'Not Accessible by you.']);
             }
@@ -255,7 +262,7 @@ class InventoryController extends Controller
     public function addPayload(Request $request)
     {
 
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -273,7 +280,7 @@ class InventoryController extends Controller
 
         return response()->json([
             'message' => 'Payload Added successfully',
-            'Drone' => PayloadInventory::create([
+            'Payload' => PayloadInventory::create([
                 "payload_model_id" => $request->input('payload_model_id'),
                 // "user_id" => Auth::user()->id,
                 "user_id" => $request->input('user_id'),
@@ -284,13 +291,13 @@ class InventoryController extends Controller
                 "insurance_status" => $request->input('insurance_status'),
                 "physical_status" => $request->input('physical_status'),
                 "activation" => $request->input('physical_status') == 'Airworthy' && $request->input('insurance_status'),
-            ])
+            ]),
         ], 201);
     }
 
     public function updatePayload(Request $request, $id)
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -338,7 +345,7 @@ class InventoryController extends Controller
 
     public function deletePayload($id)
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -362,11 +369,11 @@ class InventoryController extends Controller
 
     public function indexBatteries()
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
-        } else if (Auth::user()->role_id == 2) {
+        } else if (Auth::user()->isCenter) {
             $batteries = [];
 
             foreach (BatteryInventory::latest()->get() as $battery) {
@@ -380,7 +387,7 @@ class InventoryController extends Controller
             }
 
             return response()->json($batteries, 200);
-        } else if (Auth::user()->role_id == 3) {
+        } else if (Auth::user()->isPilot) {
             $batteries = [];
 
             foreach (BatteryInventory::where('user_id', Auth::user()->id)->latest()->get() as $battery) {
@@ -401,7 +408,7 @@ class InventoryController extends Controller
     {
         $battery = BatteryInventory::find($id);
 
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -412,7 +419,9 @@ class InventoryController extends Controller
                     'brand_name', 'model_name', 'drone_model_id', 'maximum_num_of_cycles', 'image'
                 ]);
 
-                return array_merge($battery->toArray(), $batteryModel->toArray());
+                $droneName = ['drone_brand_name' => DroneModel::find($batteryModel->drone_model_id)->brand_name];
+
+                return array_merge($battery->toArray(), $batteryModel->toArray(), $droneName);
             } else {
                 return response()->json(['message' => 'Not Accessible by you.']);
             }
@@ -424,7 +433,7 @@ class InventoryController extends Controller
     public function addBattery(Request $request)
     {
 
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -460,7 +469,7 @@ class InventoryController extends Controller
 
     public function updateBattery(Request $request, $id)
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -496,7 +505,6 @@ class InventoryController extends Controller
                 $battery->$key = $request->$key;
             }
 
-
             if ($battery->number_of_cycles > BatteryModel::find($battery->battery_model_id)->value('maximum_num_of_cycles')) { // maximum_num_of_cycles
                 $battery->physical_status = 'Retired';
             }
@@ -513,7 +521,7 @@ class InventoryController extends Controller
 
     public function deleteBattery($id)
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);

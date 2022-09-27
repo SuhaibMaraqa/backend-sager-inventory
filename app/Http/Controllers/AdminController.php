@@ -23,7 +23,7 @@ class AdminController extends Controller
 
     public function listDroneModels()
     {
-        // if (Auth::user()->role_id != 1) {
+        // if (!Auth::user()->isAdmin) {
         //     return response()->json([
         //         'message' => 'Unauthenticated user.'
         //     ]);
@@ -38,7 +38,7 @@ class AdminController extends Controller
     public function addDroneModel(Request $request)
     {
 
-        if (Auth::user()->role_id != 1) {
+        if (!Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ], Response::HTTP_UNAUTHORIZED);
@@ -64,6 +64,7 @@ class AdminController extends Controller
             $droneModel->$key = $request->$key;
         }
 
+
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $extension = $file->getClientOriginalExtension();
@@ -82,7 +83,7 @@ class AdminController extends Controller
 
     public function updateDroneModel(Request $request, $id)
     {
-        if (Auth::user()->role_id != 1) {
+        if (!Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -126,13 +127,13 @@ class AdminController extends Controller
 
     public function deleteDroneModel($id)
     {
-        // if (Auth::user()->role_id != 1) {
+        // if (!Auth::user()->isAdmin) {
         //     return response()->json([
         //         'message' => 'Unauthenticated user.'
         //     ]);
         // }
 
-        if (Auth::user()->role_id != 1) {
+        if (!Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -155,7 +156,7 @@ class AdminController extends Controller
 
     public function listPayloadModels()
     {
-        // if (Auth::user()->role_id != 1) {
+        // if (!Auth::user()->isAdmin) {
         //     return response()->json([
         //         'message' => 'Unauthenticated user.'
         //     ]);
@@ -163,13 +164,16 @@ class AdminController extends Controller
         //     $payload = PayloadModel::all();
         //     return $payload ? $payload : response()->json(['message' => 'No Drones Were Found']);
         // }
+
+
         $payload = PayloadModel::orderBy('id')->get();
         return $payload ? $payload : response()->json(['message' => 'No Drones Were Found']);
     }
 
     public function addPayloadModel(Request $request)
     {
-        if (Auth::user()->role_id != 1) {
+
+        if (!Auth::user()->isAdmin) {
             return ([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -207,6 +211,7 @@ class AdminController extends Controller
         $unattachableDrones = false;
 
         foreach ($request->input('drone_id') as $value) {
+            // return DroneModel::find($value)->payloadModel();
             if (!DroneModel::find($value)->has_built_in_camera) {
                 DroneModel::find($value)->attachPayloadModel($payloadModel);
             } else {
@@ -219,14 +224,14 @@ class AdminController extends Controller
             'message' => 'Payload Model Added successfully',
             'Payload' => $payloadModel,
             'isUnattachableDrones' => $unattachableDrones,
-            'unattachableDrones' => 'These Drones => ' . $string . ' can\'t handle attachment',
+            'unattachableDrones' => strlen($string) ? 'These Drones => ' . $string . ' can\'t handle attachment' : 'All selected drones can handle attachment',
             'drone_id' => $request->input('drone_id')
         ], 201);
     }
 
     public function updatePayloadModel(Request $request, $id)
     {
-        if (Auth::user()->role_id != 1) {
+        if (!Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -282,7 +287,7 @@ class AdminController extends Controller
 
     public function deletePayloadModel($id)
     {
-        if (Auth::user()->role_id != 1) {
+        if (!Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -306,7 +311,7 @@ class AdminController extends Controller
 
     public function listBatteryModels()
     {
-        // if (Auth::user()->role_id != 1) {
+        // if (!Auth::user()->isAdmin) {
         //     return response()->json([
         //         'message' => 'Unauthenticated user.'
         //     ]);
@@ -321,7 +326,7 @@ class AdminController extends Controller
     public function addBatteryModel(Request $request)
     {
 
-        if (Auth::user()->role_id != 1) {
+        if (!Auth::user()->isAdmin) {
             return ([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -360,7 +365,7 @@ class AdminController extends Controller
 
     public function updateBatteryModel(Request $request, $id)
     {
-        if (Auth::user()->role_id != 1) {
+        if (!Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);
@@ -400,7 +405,7 @@ class AdminController extends Controller
 
     public function deleteBatteryModel($id)
     {
-        if (Auth::user()->role_id != 1) {
+        if (!Auth::user()->isAdmin) {
             return response()->json([
                 'message' => 'Unauthenticated user.'
             ]);

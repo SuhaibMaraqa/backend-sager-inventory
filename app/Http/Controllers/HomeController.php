@@ -19,18 +19,21 @@ class HomeController extends Controller
         $this->middleware('auth');
     }
 
-    public function users(){
+    public function users()
+    {
         return User::all();
     }
 
     public function index()
     {
-        $roleId = Auth::user()->role_id;
+        if (Auth::user()->isAdmin) {
+            $roleId = 1;
+        } elseif (Auth::user()->isCenter) {
+            $roleId = 2;
+        } else {
+            $roleId = 3;
+        }
 
         return Role::find($roleId);
-
-        // return view('home', [
-        //     'role' => $role
-        // ]);
     }
 }
